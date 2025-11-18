@@ -1,11 +1,13 @@
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Button, StyleSheet, Text, View } from "react-native";
+import OAuthFlow from "../database/AuthFile";
 
 const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.centeredText}>Welcome to the Pond's Chore App</Text>
+      <OAuthFlow />
     </View>
   );
 };
