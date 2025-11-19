@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -8,6 +8,7 @@ import {
   Modal,
   Alert,
 } from "react-native";
+import * as SecureStore from "expo-secure-store";
 
 type NameType = "Bridget" | "Ellie" | "Isabelle" | "Sam" | "Kate" | "Maggie";
 type WeeklyChoreType = {
@@ -24,12 +25,20 @@ const startingObj = {
 };
 
 export const ChoreScreen = () => {
+  const [pressedName, setPressedName] = useState<string>("");
   const [isPressed, setIsPressed] = useState(false);
   const [yesChecked, setYesChecked] = useState(false);
+  const [noChecked, setNoChecked] = useState(false);
   const [weeklyChores, setWeeklyChores] =
     useState<WeeklyChoreType>(startingObj);
+  const length = Object.keys(weeklyChores).length;
+  const [isSunday, setIsSunday] = useState(true);
+  const [dateForModal, setDateForModal] = useState("");
+  const [dateForUpdate, setDateForUpdate] = useState("");
+  const token = SecureStore.getItemAsync("zohoToken");
 
   const handlePress = (name: String) => {
+    setPressedName(String(name));
     setIsPressed(true);
     console.log(`pressed ${name}`);
   };
@@ -37,30 +46,74 @@ export const ChoreScreen = () => {
     console.log(`pressed ${bool}`);
   };
 
-  if (yesChecked) {
-    console.log(`yes pressed`);
-  } else {
-    console.log(`no pressed :()`);
-  }
+  useEffect(() => {
+    const today = new Date();
+    const date = today.getDate();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
 
-  const getCurrentDate = () => {
-    const date = new Date().getDate();
-    const month = new Date().getMonth() + 1;
-    const year = new Date().getFullYear();
+    setDateForModal(`${month}-${date}-${year}`);
+    setDateForUpdate(`${year}${month}${date}`);
+  }, []); // run once on mount
 
-    //Alert.alert(date + '-' + month + '-' + year);
-    // You can turn it in to your desired format
-    return month + "-" + date + "-" + year; //format: d-m-y;
-  };
+  const handleYesNo = async (value: string) => {
+    if (value === "yes") {
+      console.log(`yes pressed`);
 
-  const setRandomWeeklyChores = () => {
-    const chores = ["Dishwasher", "Sweep/Surfaces", "Trash/Recycling"];
-    const randomIndex = Math.floor(Math.random() * chores.length);
-
-    for (const key in startingObj) {
-      key;
+      try {
+        const response = await fetch(
+          `https://calendar.zoho.com/api/v1/calendars/${process.env.ZOHO_CALENDAR_ID}/events`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Zoho-oauthtoken ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              dateandtime: {
+                timezone: "America/Chicago",
+                start: "20251119",
+                end: "20251120",
+              },
+              isallday: true,
+              title: `${pressedName} chore completed`,
+            }),
+          },
+        );
+        const data = await response.json();
+        const isApproved = data.events?.[0]?.isApproved;
+        console.log(`xx: ${JSON.stringify(data)}`)
+      } catch (err) {
+        console.error("Error fetching token:", err);
+      }
+    } else if (value === "no") {
+      console.log(`no pressed :()`);
     }
   };
+
+  useEffect(() => {
+    if (isSunday) {
+      const updated: WeeklyChoreType = { ...startingObj };
+      const chores = [
+        "Dishwasher",
+        "Sweep/Surfaces",
+        "Trash/Recycling",
+        "Dishwasher",
+        "Sweep/Surfaces",
+        "Trash/Recycling",
+      ];
+
+      const randomIndex = Math.floor(Math.random() * chores.length);
+      // const randomChore = chores[randomIndex];
+      for (const key in updated) {
+        const randomIndex = Math.floor(Math.random() * chores.length);
+        updated[key as NameType] = chores[randomIndex];
+      }
+
+      setWeeklyChores(updated);
+      console.log("Weekly chores:", weeklyChores);
+    }
+  }, [isSunday]);
 
   return (
     <>
@@ -73,7 +126,6 @@ export const ChoreScreen = () => {
             { key: "Kate" },
             { key: "Maggie" },
             { key: "Sam" },
-            { key: "Sara" },
           ]}
           renderItem={({ item }) => (
             <Pressable
@@ -97,15 +149,26 @@ export const ChoreScreen = () => {
         >
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
-              <Text style={styles.modalText}>
-                Chores for {getCurrentDate()}:{" "}
-              </Text>
-              <Text style={styles.modalText}> {getRandomChore()}</Text>
-              <Pressable onPress={() => setYesChecked(!yesChecked)}>
-                <Text>Yes | No</Text>
-              </Pressable>
+              <Text style={styles.modalText}>Chores for {dateForModal}: </Text>
+              <Text style={styles.modalText}> tbd </Text>
+              <View style={styles.yesNoRow}>
+                <Pressable
+                  style={styles.yesNoButton}
+                  onPress={() => handleYesNo("yes")}
+                >
+                  <Text>Yes</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.yesNoButton}
+                  onPress={() => handleYesNo("no")}
+                >
+                  <Text>No</Text>
+                </Pressable>
+              </View>
               <Pressable onPress={() => setIsPressed(false)}>
-                <Text style={styles.textStyle}>Hide Modal</Text>
+                <Text style={[styles.textStyle, { marginTop: 18 }]}>
+                  Hide Modal
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -117,14 +180,18 @@ export const ChoreScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // fills the whole screen
-    paddingTop: 200, // optional spacing
-    backgroundColor: "#ebf3f6ff",
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "flex-start",
+    paddingLeft: 20,
+    paddingTop: 150,
   },
   item: {
-    padding: 10,
-    fontSize: 18,
-    height: 44,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    marginVertical: 8,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
   },
   centeredView: {
     flex: 1,
@@ -149,11 +216,26 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     textAlign: "center",
+    margin: 10,
+    gap: 10,
   },
   textStyle: {
     color: "black",
     fontWeight: "bold",
     textAlign: "center",
+  },
+  yesNoRow: {
+    flexDirection: "row", // put children side by side
+    justifyContent: "center", // center them horizontally
+    alignItems: "center", // align vertically
+    gap: 16, // spacing between buttons (RN 0.71+)
+    // if gap not supported, use marginRight on the first button
+  },
+  yesNoButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
   },
 });
 

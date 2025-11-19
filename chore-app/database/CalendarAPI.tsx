@@ -1,66 +1,58 @@
 import { useEffect, useState } from "react";
-import { View, Text } from "react-native";
+import { View, Text, Button } from "react-native";
 
 type FetchCalendarProps = {
   token: string;
 };
 
-const FetchCalendar: React.FC<FetchCalendarProps> = ({ token }) => {
-  console.log("FETCH RENDERED");
+type EventType = {
+  rrule?: string;
+};
 
-  const [calendarData, setCalendarData] = useState(null);
+type EventResponseType = {
+  events: EventType[];
+};
+
+const FetchEvent: React.FC<FetchCalendarProps> = ({ token }) => {
+  const [events, setEventData] = useState<EventResponseType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<null | Error>(null);
 
-  const id =
-    "zz080112304b0ecddfa42edf8d8ead813266ae3da06053af5a982a7e3ebb8ddd39bdaca11970cb6f6ddb45943eb8346ee2eefa8ea9";
-  
+  const id = process.env.EXPO_PUBLIC_CAL_ID;
+
   console.log("Starting calendar fetch with token:", token);
 
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(
-          `https://calendar.zoho.com/api/v1/calendars/${id}`,
-          {
-            headers: {
-              Authorization: `Zoho-oauthtoken ${token}`,
-              Accept: "application/json",
-            },
+  const fetchCalendar = async () => {
+    try {
+      const response = await fetch(
+        `https://calendar.zoho.com/api/v1/calendars/${id}/events`,
+        {
+          headers: {
+            Authorization: `Zoho-oauthtoken ${token}`,
+            "Content-Type": "application/json",
           },
-        );
+        },
+      );
+      const data = await response.json();
+      console.log("Token response:", data);
+      setEventData(data);
+    } catch (err) {
+      console.error("Error fetching token:", err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const result = await response.json();
-        console.log("Calendar API response:", result);
-        setCalendarData(result);
-      } catch (err) {
-        if (err instanceof Error) {
-          console.log("Error occurred:", err.message);
-          setError(err);
-        } else {
-          const wrapped = new Error(String(err));
-          console.log("Error occurred:", wrapped.message);
-          setError(wrapped);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+  const test = events?.events[0]?.rrule;
 
-    fetchData();
-  }, []); // Empty dependency array ensures this runs only once on mount
-
-  console.log(`data here: ${calendarData}`);
+  console.log(`data here: ${test}`);
 
   return (
     <View>
-      <Text>{JSON.stringify(calendarData, null, 2)}</Text>
+      <Button title="get event details" onPress={fetchCalendar} />
     </View>
   );
 };
 
-export { FetchCalendar };
+export { FetchEvent };

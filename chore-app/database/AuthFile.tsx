@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Button } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { makeRedirectUri, useAuthRequest } from "expo-auth-session";
-import { FetchCalendar } from "./CalendarAPI";
+import { FetchEvent} from "./CalendarAPI";
+import * as SecureStore from "expo-secure-store";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -32,10 +33,9 @@ export default function OAuthFlow() {
 
   useEffect(() => {
     if (response?.type === "success") {
-      const { code, location } = response.params;
+      const { code } = response.params;
       setAuthCode(code);
       console.log("Authorization code:", code);
-      console.log("Location:", location);
     }
   }, [response]);
 
@@ -44,17 +44,19 @@ export default function OAuthFlow() {
       console.log("No auth code yet!");
       return;
     }
-
     const body = new URLSearchParams({
       grant_type: "authorization_code",
-      client_id: "1000.5Z8HHXQP1QERNYHOXK8HGQY09UV70Q",
-      client_secret: "03b36ba42012bd559c698ef19bc1457877e12e248e",
+      client_id: process.env.EXPO_PUBLIC_CLIENT_ID,
+      client_secret: process.env.EXPO_PUBLIC_CLIENT_SECRET,
       redirect_uri: 'exp://192.168.0.71:8081/--/auth',
       code: authCode,
       code_verifier: request?.codeVerifier ?? "",
     });
 
     try {
+      console.log("Client ID:", process.env.EXPO_PUBLIC_CLIENT_ID);
+      console.log("Client Secret:", process.env.EXPO_PUBLIC_CLIENT_SECRET);
+
       const response = await fetch(discovery.tokenEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -63,15 +65,12 @@ export default function OAuthFlow() {
       const data = await response.json();
       console.log("Token response:", data);
       setTokenResponse(data);
+      await SecureStore.setItemAsync("zohoToken", data.access_token);
     } catch (err) {
       console.error("Error fetching token:", err);
     }
   };
-  
-  if (tokenResponse !== null) {
-     FetchCalendar
-    
-  }
+ 
 
   return (
     <>
@@ -86,7 +85,7 @@ export default function OAuthFlow() {
         onPress={getToken}
       />
       {tokenResponse && (
-        <FetchCalendar token={tokenResponse.access_token} />
+        <FetchEvent token={tokenResponse.access_token} />
       )}
     </>
   );
