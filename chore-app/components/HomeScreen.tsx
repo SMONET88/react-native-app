@@ -2,11 +2,13 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Button, StyleSheet, Text, View } from "react-native";
 import OAuthFlow from "../database/AuthFile";
+import { lightTheme, darkTheme } from "../theme";
+
 
 const HomeScreen = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.centeredText}>Welcome to the Pond's Chore App</Text>
+    <View style={[ styles.container, {backgroundColor: lightTheme.colors.background}]}>
+      <Text style={[styles.centeredText, {color: lightTheme.colors.primary}]}>Welcome to the Pond's Chore App</Text>
       <OAuthFlow />
     </View>
   );
@@ -15,7 +17,6 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ebf3f6ff",
     alignItems: "center",
     justifyContent: "center",
   },

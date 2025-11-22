@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
+import { lightTheme } from "../theme";
 
 type NameType = "Bridget" | "Ellie" | "Isabelle" | "Sam" | "Kate" | "Maggie";
 type WeeklyChoreType = {
@@ -36,6 +37,7 @@ export const ChoreScreen = () => {
   const [dateForModal, setDateForModal] = useState("");
   const [dateForUpdate, setDateForUpdate] = useState("");
   const token = SecureStore.getItemAsync("zohoToken");
+  let [points, setPointData] = useState(0);
 
   const handlePress = (name: String) => {
     setPressedName(String(name));
@@ -70,19 +72,59 @@ export const ChoreScreen = () => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              dateandtime: {
-                timezone: "America/Chicago",
-                start: "20251119",
-                end: "20251120",
+              eventdata: {
+                title: "test invitation",
+                dateandtime: {
+                  timezone: "Asia/Kolkata",
+                  start: "20221130T180000Z",
+                  end: "20221130T183000Z",
+                },
+                reminders: [
+                  {
+                    action: "popup",
+                    minutes: -60,
+                  },
+                ],
+                attach: {
+                  fileId: "1669786154601000001,1669786188806000001",
+                },
+                attendees: [
+                  {
+                    email: "user@domain.com",
+                    status: "NEEDS-ACTION",
+                  },
+                ],
               },
-              isallday: true,
-              title: `${pressedName} chore completed`,
             }),
           },
         );
+
         const data = await response.json();
+        setPointData((points += 1));
+        console.log("Response:", data);
+
+        //   const response = await fetch(
+        //     `https://calendar.zoho.com/api/v1/calendars/${process.env.ZOHO_CALENDAR_ID}/events`,
+        //     {
+        //       method: "POST",
+        //       headers: {
+        //         Authorization: `Zoho-oauthtoken ${token}`,
+        //         "Content-Type": "application/json",
+        //       },
+        //       body: JSON.stringify({
+        //         dateandtime: {
+        //           timezone: "America/Chicago",
+        //           start: "20251119",
+        //           end: "20251120",
+        //         },
+        //         isallday: true,
+        //         title: `${pressedName} chore completed`,
+        //       }),
+        //     },
+        //   );
+        // const data = await response.json();
         const isApproved = data.events?.[0]?.isApproved;
-        console.log(`xx: ${JSON.stringify(data)}`)
+        console.log(`xx: ${JSON.stringify(data)}`);
       } catch (err) {
         console.error("Error fetching token:", err);
       }
@@ -117,7 +159,12 @@ export const ChoreScreen = () => {
 
   return (
     <>
-      <View style={styles.container}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: lightTheme.colors.primary },
+        ]}
+      >
         <FlatList
           data={[
             { key: "Bridget" },
