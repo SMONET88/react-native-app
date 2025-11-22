@@ -10,9 +10,16 @@ import {
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { lightTheme } from "../theme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-type NameType = "Bridget" | "Ellie" | "Isabelle" | "Sam" | "Kate" | "Maggie";
-type WeeklyChoreType = {
+export type NameType =
+  | "Bridget"
+  | "Ellie"
+  | "Isabelle"
+  | "Sam"
+  | "Kate"
+  | "Maggie";
+export type WeeklyChoreType = {
   [key in NameType]: string;
 };
 
@@ -25,7 +32,32 @@ const startingObj = {
   Maggie: "",
 };
 
-export const ChoreScreen = () => {
+const setStorageChores = async (value: WeeklyChoreType) => {
+  try {
+    const jsonValue = JSON.stringify(value);
+    await AsyncStorage.setItem("chore-list", jsonValue);
+  } catch (e) {
+    // saving error
+  }
+};
+
+
+const getStorageChores = async () => {
+  try {
+    const jsonValue = await AsyncStorage.getItem("chore-list");
+    if (jsonValue != null) {
+      const updatedJson = JSON.parse(jsonValue);
+      return updatedJson;
+    }
+  } catch (e) {
+    // error reading value
+  }
+};
+
+
+
+
+const ChoreScreen = () => {
   const [pressedName, setPressedName] = useState<string>("");
   const [isPressed, setIsPressed] = useState(false);
   const [yesChecked, setYesChecked] = useState(false);
@@ -33,7 +65,7 @@ export const ChoreScreen = () => {
   const [weeklyChores, setWeeklyChores] =
     useState<WeeklyChoreType>(startingObj);
   const length = Object.keys(weeklyChores).length;
-  const [isSunday, setIsSunday] = useState(true);
+  const [isSunday, setIsSunday] = useState(false);
   const [dateForModal, setDateForModal] = useState("");
   const [dateForUpdate, setDateForUpdate] = useState("");
   const token = SecureStore.getItemAsync("zohoToken");
@@ -48,19 +80,11 @@ export const ChoreScreen = () => {
     console.log(`pressed ${bool}`);
   };
 
-  useEffect(() => {
-    const today = new Date();
-    const date = today.getDate();
-    const month = today.getMonth() + 1;
-    const year = today.getFullYear();
-
-    setDateForModal(`${month}-${date}-${year}`);
-    setDateForUpdate(`${year}${month}${date}`);
-  }, []); // run once on mount
-
   const handleYesNo = async (value: string) => {
     if (value === "yes") {
       console.log(`yes pressed`);
+      
+      
 
       try {
         const response = await fetch(
@@ -100,7 +124,6 @@ export const ChoreScreen = () => {
         );
 
         const data = await response.json();
-        setPointData((points += 1));
         console.log("Response:", data);
 
         //   const response = await fetch(
@@ -134,8 +157,7 @@ export const ChoreScreen = () => {
   };
 
   useEffect(() => {
-    if (isSunday) {
-      const updated: WeeklyChoreType = { ...startingObj };
+    const assignChores = async () => {
       const chores = [
         "Dishwasher",
         "Sweep/Surfaces",
@@ -144,18 +166,39 @@ export const ChoreScreen = () => {
         "Sweep/Surfaces",
         "Trash/Recycling",
       ];
+      const updated: WeeklyChoreType = { ...startingObj };
 
-      const randomIndex = Math.floor(Math.random() * chores.length);
-      // const randomChore = chores[randomIndex];
       for (const key in updated) {
         const randomIndex = Math.floor(Math.random() * chores.length);
         updated[key as NameType] = chores[randomIndex];
       }
 
       setWeeklyChores(updated);
-      console.log("Weekly chores:", weeklyChores);
+      await setStorageChores(updated);
+
+      const stored = await getStorageChores();
+      console.log("Weekly chores from storage:", stored);
+    };
+    if (isSunday) {
+      assignChores();
     }
   }, [isSunday]);
+
+  useEffect(() => {
+    const today = new Date();
+    const date = today.getDate();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
+    const weekday = today.getDay();
+
+    setDateForModal(`${month}-${date}-${year}`);
+    setDateForUpdate(`${year}${month}${date}`);
+
+    getStorageChores();
+    // if (weekday === 0){
+    setIsSunday(false);
+    // }
+  }, []); // run once on mount
 
   return (
     <>
@@ -286,4 +329,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ChoreScreen;
+export { ChoreScreen, setStorageChores, getStorageChores };
