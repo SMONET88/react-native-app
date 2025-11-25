@@ -12,7 +12,7 @@ const HomeScreen = () => {
   return (
     <View style={[ styles.container, {backgroundColor: lightTheme.colors.background}]}>
       <Text style={[styles.centeredText, {color: lightTheme.colors.primary}]}>Pond's Chore App</Text>
-      {/*<OAuthFlow />*/}
+      <OAuthFlow />
     </View>
   );
 };

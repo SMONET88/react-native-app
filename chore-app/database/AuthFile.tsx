@@ -65,7 +65,7 @@ export default function OAuthFlow() {
       const data = await response.json();
       console.log("Token response:", data);
       setTokenResponse(data);
-      await SecureStore.setItemAsync("zohoToken", data.access_token);
+      await SecureStore.setItemAsync("zohoToken", JSON.stringify(data.access_token));
     } catch (err) {
       console.error("Error fetching token:", err);
     }

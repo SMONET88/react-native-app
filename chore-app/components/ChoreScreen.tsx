@@ -11,6 +11,8 @@ import {
 import * as SecureStore from "expo-secure-store";
 import { lightTheme } from "../theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { PointsType } from "../App";
+import { getStorageChores, setStorageChores } from "../StorageUtils";
 
 export type NameType =
   | "Bridget"
@@ -32,32 +34,12 @@ const startingObj = {
   Maggie: "",
 };
 
-const setStorageChores = async (value: WeeklyChoreType) => {
-  try {
-    const jsonValue = JSON.stringify(value);
-    await AsyncStorage.setItem("chore-list", jsonValue);
-  } catch (e) {
-    // saving error
-  }
+type ChoreScreenProps = {
+  points: PointsType;
+  onUpdatePoints: (newPoints: PointsType) => void;
 };
 
-
-const getStorageChores = async () => {
-  try {
-    const jsonValue = await AsyncStorage.getItem("chore-list");
-    if (jsonValue != null) {
-      const updatedJson = JSON.parse(jsonValue);
-      return updatedJson;
-    }
-  } catch (e) {
-    // error reading value
-  }
-};
-
-
-
-
-const ChoreScreen = () => {
+const ChoreScreen = ({ points, onUpdatePoints }: ChoreScreenProps) => {
   const [pressedName, setPressedName] = useState<string>("");
   const [isPressed, setIsPressed] = useState(false);
   const [yesChecked, setYesChecked] = useState(false);
@@ -68,91 +50,97 @@ const ChoreScreen = () => {
   const [isSunday, setIsSunday] = useState(false);
   const [dateForModal, setDateForModal] = useState("");
   const [dateForUpdate, setDateForUpdate] = useState("");
-  const token = SecureStore.getItemAsync("zohoToken");
-  let [points, setPointData] = useState(0);
 
-  const handlePress = (name: String) => {
+  const [modalChore, setModalChore] = useState<string>("");
+
+  const getToken = async () => {
+    try {
+      const stored = await SecureStore.getItemAsync("zohoToken");
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      return null;
+    } catch (error) {
+      console.error("Error retrieving token:", error);
+      return null;
+    }
+  };
+
+  const handlePress = async (name: String) => {
     setPressedName(String(name));
     setIsPressed(true);
     console.log(`pressed ${name}`);
+
+    const choreList = await getStorageChores();
+
+    for (const n in choreList) {
+      if (name === n) {
+        const oneChore = choreList[n as NameType];
+        setModalChore(oneChore);
+      }
+    }
   };
-  const handleModalPress = (bool: String) => {
-    console.log(`pressed ${bool}`);
+
+  const updateCalendar = async () => {
+    const token = await getToken();
+    const formData = new FormData();
+
+    formData.append(
+      "eventdata",
+      JSON.stringify({
+        dateandtime: {
+          timezone: "America/Chicago",
+          start: `${dateForUpdate}`,
+          end: `${dateForUpdate}`,
+        },
+        isallday: true,
+        title: `${pressedName} chore completed`,
+        color: "#E574B0",
+      }),
+    );
+    try {
+      const response = await fetch(
+        `https://calendar.zoho.com/api/v1/calendars/${process.env.EXPO_PUBLIC_CAL_ID}/events`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Zoho-oauthtoken ${token}`,
+          },
+          body: formData,
+        },
+      );
+      if (response.ok) {
+        console.log(await response.json());
+        console.log(`EVENT HAS BEEN CREATED`);
+      } else {
+        console.log(
+          "Failed to create event",
+          response.status,
+          await response.text(),
+        );
+      }
+    } catch (error) {
+      console.log(`Error created event. ${error}`);
+      console.error(error);
+    }
+  };
+
+  const handlePoints = (newPoints: PointsType) => {
+    onUpdatePoints(newPoints);
   };
 
   const handleYesNo = async (value: string) => {
     if (value === "yes") {
       console.log(`yes pressed`);
-      
-      
 
-      try {
-        const response = await fetch(
-          `https://calendar.zoho.com/api/v1/calendars/${process.env.ZOHO_CALENDAR_ID}/events`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Zoho-oauthtoken ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              eventdata: {
-                title: "test invitation",
-                dateandtime: {
-                  timezone: "Asia/Kolkata",
-                  start: "20221130T180000Z",
-                  end: "20221130T183000Z",
-                },
-                reminders: [
-                  {
-                    action: "popup",
-                    minutes: -60,
-                  },
-                ],
-                attach: {
-                  fileId: "1669786154601000001,1669786188806000001",
-                },
-                attendees: [
-                  {
-                    email: "user@domain.com",
-                    status: "NEEDS-ACTION",
-                  },
-                ],
-              },
-            }),
-          },
-        );
-
-        const data = await response.json();
-        console.log("Response:", data);
-
-        //   const response = await fetch(
-        //     `https://calendar.zoho.com/api/v1/calendars/${process.env.ZOHO_CALENDAR_ID}/events`,
-        //     {
-        //       method: "POST",
-        //       headers: {
-        //         Authorization: `Zoho-oauthtoken ${token}`,
-        //         "Content-Type": "application/json",
-        //       },
-        //       body: JSON.stringify({
-        //         dateandtime: {
-        //           timezone: "America/Chicago",
-        //           start: "20251119",
-        //           end: "20251120",
-        //         },
-        //         isallday: true,
-        //         title: `${pressedName} chore completed`,
-        //       }),
-        //     },
-        //   );
-        // const data = await response.json();
-        const isApproved = data.events?.[0]?.isApproved;
-        console.log(`xx: ${JSON.stringify(data)}`);
-      } catch (err) {
-        console.error("Error fetching token:", err);
-      }
+      const updatedPoints = {
+        ...points,
+        [pressedName as NameType]: points[pressedName as NameType] + 1,
+      };
+      handlePoints(updatedPoints);
+      await updateCalendar();
     } else if (value === "no") {
-      console.log(`no pressed :()`);
+      setIsPressed(false);
     }
   };
 
@@ -240,7 +228,7 @@ const ChoreScreen = () => {
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
               <Text style={styles.modalText}>Chores for {dateForModal}: </Text>
-              <Text style={styles.modalText}> tbd </Text>
+              <Text style={styles.modalText}>{modalChore}</Text>
               <View style={styles.yesNoRow}>
                 <Pressable
                   style={styles.yesNoButton}
