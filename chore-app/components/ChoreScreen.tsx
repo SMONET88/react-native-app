@@ -10,10 +10,9 @@ import {
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { lightTheme } from "../theme";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PointsType } from "../App";
 import { getStorageChores, setStorageChores } from "../StorageUtils";
-
+import usePoints from "../usePoints";
 export type NameType =
   | "Bridget"
   | "Ellie"
@@ -21,6 +20,7 @@ export type NameType =
   | "Sam"
   | "Kate"
   | "Maggie";
+  
 export type WeeklyChoreType = {
   [key in NameType]: string;
 };
@@ -34,22 +34,25 @@ const startingObj = {
   Maggie: "",
 };
 
-type ChoreScreenProps = {
-  points: PointsType;
-  onUpdatePoints: (newPoints: PointsType) => void;
+const startingDuckObj = {
+  Bridget: 0,
+  Ellie: 0,
+  Isabelle: 0,
+  Sam: 0,
+  Kate: 0,
+  Maggie: 0,
 };
 
-const ChoreScreen = ({ points, onUpdatePoints }: ChoreScreenProps) => {
+const ChoreScreen = () => {
   const [pressedName, setPressedName] = useState<string>("");
   const [isPressed, setIsPressed] = useState(false);
-  const [yesChecked, setYesChecked] = useState(false);
-  const [noChecked, setNoChecked] = useState(false);
   const [weeklyChores, setWeeklyChores] =
     useState<WeeklyChoreType>(startingObj);
-  const length = Object.keys(weeklyChores).length;
   const [isSunday, setIsSunday] = useState(false);
   const [dateForModal, setDateForModal] = useState("");
   const [dateForUpdate, setDateForUpdate] = useState("");
+  const [points, updatePoints] = usePoints();
+  const [duckArray, setDuckObj] = useState(startingDuckObj);
 
   const [modalChore, setModalChore] = useState<string>("");
 
@@ -79,6 +82,16 @@ const ChoreScreen = ({ points, onUpdatePoints }: ChoreScreenProps) => {
         setModalChore(oneChore);
       }
     }
+  };
+
+  const addDuck = () => {
+    setDuckObj((prev) => {
+      const newObj = { ...prev };
+      const key = pressedName as NameType;
+      const num = newObj[key];
+      newObj[key] = num ? num + 1 : 1;
+      return newObj;
+    });
   };
 
   const updateCalendar = async () => {
@@ -124,21 +137,19 @@ const ChoreScreen = ({ points, onUpdatePoints }: ChoreScreenProps) => {
       console.error(error);
     }
   };
-
-  const handlePoints = (newPoints: PointsType) => {
-    onUpdatePoints(newPoints);
+  const incrementPoints = async () => {
+    const newPoints = parseInt(points) + 1;
+    await updatePoints(newPoints.toString());
   };
 
   const handleYesNo = async (value: string) => {
     if (value === "yes") {
-      console.log(`yes pressed`);
-
-      const updatedPoints = {
-        ...points,
-        [pressedName as NameType]: points[pressedName as NameType] + 1,
-      };
-      handlePoints(updatedPoints);
+      
+      await incrementPoints();
       await updateCalendar();
+      addDuck();
+      setIsPressed(false);
+      
     } else if (value === "no") {
       setIsPressed(false);
     }
@@ -206,12 +217,23 @@ const ChoreScreen = ({ points, onUpdatePoints }: ChoreScreenProps) => {
             { key: "Sam" },
           ]}
           renderItem={({ item }) => (
-            <Pressable
-              onPress={() => handlePress(item.key)}
-              style={styles.item}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+              }}
             >
-              <Text>{item.key}</Text>
-            </Pressable>
+              <Pressable
+                onPress={() => handlePress(item.key)}
+                style={styles.item}
+              >
+                <Text>{item.key}</Text>
+              </Pressable>
+              <Text style={{ marginLeft: 10 }}>
+                {" "}
+                {"🦆".repeat(duckArray[item.key])}
+              </Text>
+            </View>
           )}
         />
       </View>
@@ -303,11 +325,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   yesNoRow: {
-    flexDirection: "row", // put children side by side
-    justifyContent: "center", // center them horizontally
-    alignItems: "center", // align vertically
-    gap: 16, // spacing between buttons (RN 0.71+)
-    // if gap not supported, use marginRight on the first button
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
   },
   yesNoButton: {
     paddingVertical: 12,

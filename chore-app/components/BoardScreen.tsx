@@ -1,21 +1,20 @@
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Button, StyleSheet, Text, View } from "react-native";
+
+import { StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Table, Row, Rows } from "react-native-table-component";
 import { lightTheme } from "../theme";
-import { getStorageChores, WeeklyChoreType } from "./ChoreScreen";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getStorageChores } from "./ChoreScreen";
+import usePoints from "../usePoints";
 
-type TableChoreType = {
-  name: string;
-};
 
 const tableHead = ["Roomie", "Chore"];
 
 export default function BoardScreen() {
   const [data, setData] = useState<string[][]>([]);
+  const [points, updatePoints] = usePoints();
+  const [localPoints, setLocalPoints] = useState(points);
   
+
   useEffect(() => {
     const fetchData = async () => {
       const chores = await getStorageChores();
@@ -24,11 +23,22 @@ export default function BoardScreen() {
       const tableData = keys.map((key, index) => {
         const chore = values[index];
         return [key, chore];
-      })
+      });
       setData(tableData);
     };
     fetchData();
   }, []);
+  
+  useEffect(() => {
+    setLocalPoints(points);
+     console.log(`xxxxx here: ${points}`);
+  }, [points]);
+  
+
+  
+  
+
+
   return (
     <View
       style={[styles.container, { backgroundColor: lightTheme.colors.primary }]}
@@ -39,6 +49,7 @@ export default function BoardScreen() {
         <Row data={tableHead} style={styles.head} textStyle={styles.headText} />
         <Rows data={data} textStyle={styles.text} />
       </Table>
+      <Text style={{ marginTop: 100, color: lightTheme.colors.secondary, fontSize: 40, fontFamily: "Gill Sans", textAlign: "center" }}>{localPoints}</Text>
     </View>
   );
 }
