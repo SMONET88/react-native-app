@@ -11,7 +11,7 @@ import {
 import * as SecureStore from "expo-secure-store";
 import { lightTheme } from "../theme";
 import { PointsType } from "../App";
-import { getStorageChores, setStorageChores } from "../StorageUtils";
+import { clearPointsStorage, getStorageChores, setStorageChores } from "../StorageUtils";
 import usePoints from "../usePoints";
 export type NameType =
   | "Bridget"
@@ -48,7 +48,7 @@ const ChoreScreen = () => {
   const [isPressed, setIsPressed] = useState(false);
   const [weeklyChores, setWeeklyChores] =
     useState<WeeklyChoreType>(startingObj);
-  const [isSunday, setIsSunday] = useState(false);
+  const [isSunday, setIsSunday] = useState(true);
   const [dateForModal, setDateForModal] = useState("");
   const [dateForUpdate, setDateForUpdate] = useState("");
   const [points, updatePoints] = usePoints();
@@ -144,6 +144,7 @@ const ChoreScreen = () => {
 
   const handleYesNo = async (value: string) => {
     if (value === "yes") {
+
       
       await incrementPoints();
       await updateCalendar();
@@ -170,6 +171,7 @@ const ChoreScreen = () => {
       for (const key in updated) {
         const randomIndex = Math.floor(Math.random() * chores.length);
         updated[key as NameType] = chores[randomIndex];
+        chores.splice(randomIndex, 1);
       }
 
       setWeeklyChores(updated);
@@ -204,7 +206,7 @@ const ChoreScreen = () => {
       <View
         style={[
           styles.container,
-          { backgroundColor: lightTheme.colors.primary },
+          { backgroundColor: lightTheme.colors.background },
         ]}
       >
         <FlatList
@@ -227,7 +229,7 @@ const ChoreScreen = () => {
                 onPress={() => handlePress(item.key)}
                 style={styles.item}
               >
-                <Text>{item.key}</Text>
+                <Text style={{color: "white", fontSize: 16, fontWeight: "bold", textAlign: "center" }}>{item.key}</Text>
               </Pressable>
               <Text style={{ marginLeft: 10 }}>
                 {" "}
@@ -290,7 +292,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 24,
     marginVertical: 8,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: lightTheme.colors.primary,
     borderRadius: 8,
   },
   centeredView: {

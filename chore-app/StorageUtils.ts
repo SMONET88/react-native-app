@@ -23,23 +23,11 @@ export const getStorageChores = async () => {
   }
 };
 
-export const setStoragePoints = async (value: PointsType) => {
+ export const clearPointsStorage = async () => {
   try {
-    const jsonValue = JSON.stringify(value);
-    await AsyncStorage.setItem("point-key", jsonValue);
+    await AsyncStorage.removeItem("points");
+    console.log("Points storage successfully cleared.");
   } catch (e) {
-    // saving error
-  }
-};
-
-export const getStoragePoints = async () => {
-  try {
-    const jsonValue = await AsyncStorage.getItem("point-key");
-    if (jsonValue != null) {
-      const updatedJson = JSON.parse(jsonValue);
-      return updatedJson;
-    }
-  } catch (e) {
-    // error reading value
+    console.error("Failed to clear points storage:", e);
   }
 };
