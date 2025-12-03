@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useState, useEffect } from "react";
 
 export default function usePoints() {
-  const [points, setPoints] = useState<string>('0');
+  const [points, setPoints] = useState<string>('1');
 
   useEffect(() => {
     (async () => {

@@ -76,17 +76,17 @@ export default function OAuthFlow() {
     <>
       <Button
         disabled={!request}
-        title="Login (Get Code)"
+        title="Login to Zoho"
         onPress={() => promptAsync()}
       />
       <Button
         disabled={!authCode}
-        title="Exchange Code for Token"
+        title="Get Token"
         onPress={getToken}
       />
-      {tokenResponse && (
+      {/*{tokenResponse && (
         <FetchEvent token={tokenResponse.access_token} />
-      )}
+      )}*/}
     </>
   );
 }

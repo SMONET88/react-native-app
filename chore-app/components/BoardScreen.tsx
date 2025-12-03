@@ -5,7 +5,6 @@ import { Table, Row, Rows } from "react-native-table-component";
 import { lightTheme } from "../theme";
 import { getStorageChores } from "./ChoreScreen";
 import usePoints from "../usePoints";
-import { clearPointsStorage } from "../StorageUtils";
 
 
 const tableHead = ["Roomie", "Chore"];
@@ -31,9 +30,7 @@ export default function BoardScreen() {
   }, []);
   
   useEffect(() => {
-    clearPointsStorage();
     setLocalPoints(points);
-     console.log(`xxxxx here: ${points}`);
   }, [points]);
   
 
@@ -52,6 +49,7 @@ export default function BoardScreen() {
         <Rows data={data} textStyle={styles.text} />
       </Table>
       <Text style={{ marginTop: 100, color: lightTheme.colors.secondary, fontSize: 60, fontFamily: "Gill Sans", textAlign: "center" }}>{localPoints}</Text>
+      <Text style={{ marginTop: 100, color: lightTheme.colors.secondary, fontSize: 40, fontFamily: "Gill Sans", textAlign: "center" }}>House Points</Text>
     </View>
   );
 }

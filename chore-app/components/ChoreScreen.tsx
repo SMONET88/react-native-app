@@ -10,8 +10,12 @@ import {
 } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { lightTheme } from "../theme";
-import { PointsType } from "../App";
-import { clearPointsStorage, getStorageChores, setStorageChores } from "../StorageUtils";
+import {
+  getStorageChores,
+  getStorageDucks,
+  setStorageChores,
+  setStorageDucks,
+} from "../StorageUtils";
 import usePoints from "../usePoints";
 export type NameType =
   | "Bridget"
@@ -20,7 +24,7 @@ export type NameType =
   | "Sam"
   | "Kate"
   | "Maggie";
-  
+
 export type WeeklyChoreType = {
   [key in NameType]: string;
 };
@@ -48,7 +52,7 @@ const ChoreScreen = () => {
   const [isPressed, setIsPressed] = useState(false);
   const [weeklyChores, setWeeklyChores] =
     useState<WeeklyChoreType>(startingObj);
-  const [isSunday, setIsSunday] = useState(true);
+  const [isSunday, setIsSunday] = useState(false);
   const [dateForModal, setDateForModal] = useState("");
   const [dateForUpdate, setDateForUpdate] = useState("");
   const [points, updatePoints] = usePoints();
@@ -90,8 +94,16 @@ const ChoreScreen = () => {
       const key = pressedName as NameType;
       const num = newObj[key];
       newObj[key] = num ? num + 1 : 1;
+
+      setStorageDucks(newObj);
       return newObj;
     });
+  };
+
+  const resetDucks = async () => {
+    console.log("Resetting ducks...");
+    setDuckObj(startingDuckObj);
+    await setStorageDucks(startingDuckObj);
   };
 
   const updateCalendar = async () => {
@@ -144,13 +156,10 @@ const ChoreScreen = () => {
 
   const handleYesNo = async (value: string) => {
     if (value === "yes") {
-
-      
       await incrementPoints();
       await updateCalendar();
       addDuck();
       setIsPressed(false);
-      
     } else if (value === "no") {
       setIsPressed(false);
     }
@@ -182,8 +191,14 @@ const ChoreScreen = () => {
     };
     if (isSunday) {
       assignChores();
+      resetDucks();
     }
   }, [isSunday]);
+
+  const getLocalDucks = async () => {
+    const stored = await getStorageDucks();
+    setDuckObj(stored);
+  };
 
   useEffect(() => {
     const today = new Date();
@@ -195,6 +210,7 @@ const ChoreScreen = () => {
     setDateForModal(`${month}-${date}-${year}`);
     setDateForUpdate(`${year}${month}${date}`);
 
+    getLocalDucks();
     getStorageChores();
     // if (weekday === 0){
     setIsSunday(false);
@@ -229,7 +245,16 @@ const ChoreScreen = () => {
                 onPress={() => handlePress(item.key)}
                 style={styles.item}
               >
-                <Text style={{color: "white", fontSize: 16, fontWeight: "bold", textAlign: "center" }}>{item.key}</Text>
+                <Text
+                  style={{
+                    color: "white",
+                    fontSize: 16,
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  {item.key}
+                </Text>
               </Pressable>
               <Text style={{ marginLeft: 10 }}>
                 {" "}

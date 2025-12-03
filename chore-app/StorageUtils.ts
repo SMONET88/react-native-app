@@ -1,6 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WeeklyChoreType } from "./components/ChoreScreen";
-import { PointsType } from "./App";
 
 export const setStorageChores = async (value: WeeklyChoreType) => {
   try {
@@ -23,11 +22,34 @@ export const getStorageChores = async () => {
   }
 };
 
- export const clearPointsStorage = async () => {
-  try {
-    await AsyncStorage.removeItem("points");
-    console.log("Points storage successfully cleared.");
-  } catch (e) {
-    console.error("Failed to clear points storage:", e);
-  }
+type DuckType = {
+  Bridget: number;
+  Ellie: number;
+  Isabelle: number;
+  Sam: number;
+  Kate: number;
+  Maggie: number;
 };
+
+export const getStorageDucks = async () => {
+    try {
+      const stored = await AsyncStorage.getItem("duckCounts");
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      return '0' ;
+    } catch (error) {
+      console.error("Error retrieving ducks:", error);
+      return '0';
+    }
+  };
+
+  
+  export const setStorageDucks = async (duckArray: DuckType) => {
+    try {
+      
+      await AsyncStorage.setItem("duckCounts", JSON.stringify(duckArray));
+    } catch (error) {
+      console.error("Error saving ducks:", error);
+    }
+  };
