@@ -1,6 +1,6 @@
 # Pond-Chore-App 🦆
 
-The **Pond-Chore-App** is a React Native application built to help track and manage weekly chores in our house (affectionately called *The Pond*). Some roommates are great at keeping up with chores, others need a little nudge — this app makes it easy to assign tasks, track completions, and reward the whole house when we hit collective goals.
+The **Pond-Chore-App** is a React Native application built to help track and manage weekly chores in our house. Some roommates are great at keeping up with chores, others not so much. So, this app makes it easy to assign tasks, track completions, and reward the whole house when we hit collective goals.
 
 ---
 
