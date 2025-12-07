@@ -52,7 +52,7 @@ const ChoreScreen = () => {
   const [isPressed, setIsPressed] = useState(false);
   const [weeklyChores, setWeeklyChores] =
     useState<WeeklyChoreType>(startingObj);
-  const [isSunday, setIsSunday] = useState(false);
+  const [isSunday, setIsSunday] = useState(true);
   const [dateForModal, setDateForModal] = useState("");
   const [dateForUpdate, setDateForUpdate] = useState("");
   const [points, updatePoints] = usePoints();
@@ -202,10 +202,15 @@ const ChoreScreen = () => {
 
   useEffect(() => {
     const today = new Date();
-    const date = today.getDate();
+    let date = (today.getDate()).toString();
     const month = today.getMonth() + 1;
     const year = today.getFullYear();
     const weekday = today.getDay();
+
+    if (!date.includes("0")) {
+      date = "0" + date;
+      console.log(`new new date : ${date}`);
+    }
 
     setDateForModal(`${month}-${date}-${year}`);
     setDateForUpdate(`${year}${month}${date}`);
@@ -216,6 +221,8 @@ const ChoreScreen = () => {
     setIsSunday(false);
     // }
   }, []); // run once on mount
+  
+
 
   return (
     <>
