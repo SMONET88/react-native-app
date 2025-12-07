@@ -2,7 +2,7 @@
 
 The **Pond-Chore-App** is a React Native application built to help track and manage weekly chores in our house. Some roommates are great at keeping up with chores, others not so much. So, this app makes it easy to assign tasks, track completions, and reward the whole house when we hit collective goals.
 
-Our ZOHO group Calendar Link: https://calendar.zoho.com/ical/zz080112304b0ecddfa42edf8d8ead813266ae3da06053af5a982a7e3ebb8ddd39bdaca11970cb6f6ddb45943eb8346ee2eefa8ea9
+Our ZOHO group Calendar Link: https://calendar.zoho.com/zc/mn/20251130-20260103
 
 ---
 
