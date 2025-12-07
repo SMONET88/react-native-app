@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { makeRedirectUri, useAuthRequest } from "expo-auth-session";
-import { FetchEvent} from "./CalendarAPI";
+
 import * as SecureStore from "expo-secure-store";
 
 WebBrowser.maybeCompleteAuthSession();

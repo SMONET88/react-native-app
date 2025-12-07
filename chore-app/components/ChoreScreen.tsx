@@ -52,7 +52,7 @@ const ChoreScreen = () => {
   const [isPressed, setIsPressed] = useState(false);
   const [weeklyChores, setWeeklyChores] =
     useState<WeeklyChoreType>(startingObj);
-  const [isSunday, setIsSunday] = useState(true);
+  const [isSunday, setIsSunday] = useState(false);
   const [dateForModal, setDateForModal] = useState("");
   const [dateForUpdate, setDateForUpdate] = useState("");
   const [points, updatePoints] = usePoints();
@@ -202,14 +202,13 @@ const ChoreScreen = () => {
 
   useEffect(() => {
     const today = new Date();
-    let date = (today.getDate()).toString();
+    let date = today.getDate().toString();
     const month = today.getMonth() + 1;
     const year = today.getFullYear();
     const weekday = today.getDay();
 
     if (!date.includes("0")) {
       date = "0" + date;
-      console.log(`new new date : ${date}`);
     }
 
     setDateForModal(`${month}-${date}-${year}`);
@@ -217,12 +216,12 @@ const ChoreScreen = () => {
 
     getLocalDucks();
     getStorageChores();
-    // if (weekday === 0){
-    setIsSunday(false);
-    // }
+    if (weekday === 0) {
+      setIsSunday(true);
+    } else {
+      setIsSunday(false);
+    }
   }, []); // run once on mount
-  
-
 
   return (
     <>

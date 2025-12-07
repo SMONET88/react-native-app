@@ -9,7 +9,7 @@ export default function usePoints() {
       const saved = await AsyncStorage.getItem("points");
       if (isNaN(Number(saved))) {
         console.log("No points found!!");
-        await AsyncStorage.setItem("points", '0');
+        await AsyncStorage.setItem("points", '1');
       } else {
         setPoints(saved);
       };

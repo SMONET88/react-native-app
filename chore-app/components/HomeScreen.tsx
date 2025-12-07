@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   centeredText: {
-    textAlign: "center", // centers text inside its own box
+    textAlign: "center", 
     fontSize: 30,
   },
 });
