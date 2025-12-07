@@ -16,3 +16,6 @@ The **Pond-Chore-App** is a React Native application built to help track and man
    cd Pond-Chore-App
    npm install
    npm run dev
+
+Run app with: npx expo start --tunnel
+to recieve an Expo Share link
