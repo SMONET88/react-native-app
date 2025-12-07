@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Table, Row, Rows } from "react-native-table-component";
 import { lightTheme } from "../theme";
@@ -33,12 +33,12 @@ export default function BoardScreen() {
 
   const sendPrizeMessage = async () => {
     const numPoints = parseInt(points);
-    if (numPoints >= 20 && numPoints <= 50) {
-      console.log(`Congratulations! You've earned Mula margs!`);
-    } else if (numPoints >= 50 && numPoints <= 100) {
-      console.log(`Wow, keep it up! You've earned more Mula margs!`);
-    } else if (numPoints >= 100 && numPoints <= 150) {
-      console.log(`Amazing job ladies! You've earned so many Mula margs$!`);
+    if (numPoints === 25) {
+      Alert.alert('Congratulations!', 'You\'ve earned Mula margs!');
+    } else if (numPoints === 50) {
+      Alert.alert('Wow!', 'Keep it up! You\'ve earned more Mula margs!');
+    } else if (numPoints === 100) {
+      Alert.alert('Amazing job!', 'You\'ve earned so many Mula margs!');
     }
   };
 
